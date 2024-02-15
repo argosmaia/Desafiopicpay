@@ -1,18 +1,25 @@
 package com.picpaysimplificado.services;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAccessor;
 
 import org.hibernate.mapping.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.picpaysimplificado.domain.*;
+import com.picpaysimplificado.domain.transaction.Transaction;
 import com.picpaysimplificado.domain.user.User;
 import com.picpaysimplificado.dtos.TransactionDTO;
 import com.picpaysimplificado.repositories.TransactionRepository;
+import com.picpaysimplificado.services.UserService;
 
 @Service
 public class TransactionService {
@@ -33,16 +40,32 @@ public class TransactionService {
 
         boolean isAuthorized = this.authorizeTransaction(sender, transaction.value());
         
-        if(!this.authorizeTransaction(sender, transaction.value())) {
+        if(!isAuthorized) {
             throw new Exception("Transação não autorizada");
         }
+
+        Transaction newTransaction = new Transaction();
+        newTransaction.setAmount(transaction.value());
+        newTransaction.setSender(sender);
+        newTransaction.setReceiver(receiver);
+        newTransaction.setTimestamp(LocalDateTime.now());
+
+        sender.setBalance(sender.getBalance().subtract(transaction.value()));
+        receiver.setBalance(receiver.getBalance().add(transaction.value()));
+
+        this.repository.save(newTransaction);
+        this.userService.saveUser(sender);
+        this.userService.saveUser(receiver);
+
         // if (Long.valueOf(sender.getId()).equals(Long.valueOf(receiver.getId()))) {
         //     throw new Exception("Usuário não pode transferir para ele mesmo");
         // }
     }
 
     public boolean authorizeTransaction(User sender, BigDecimal value) {
-        ResponseEntity<Map> authorizationresponse = restTemplate.getForEntity("https://run.mocky.io/v3/5794d450-d2e2-4412-8131-73d0293ac1cc",
+        ResponseEntity<Map> authorizationresponse = restTemplate
+        .getForEntity(
+            "https://run.mocky.io/v3/5794d450-d2e2-4412-8131-73d0293ac1cc",
         Map.class);
 
         if(authorizationresponse.getStatusCode() == HttpStatus.OK) {
