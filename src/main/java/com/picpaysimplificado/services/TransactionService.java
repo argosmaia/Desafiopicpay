@@ -69,7 +69,7 @@ public class TransactionService {
         Map.class);
 
         if(authorizationresponse.getStatusCode() == HttpStatus.OK) {
-            String message = (String) authorizationresponse.getBody().get("message");
+            String message = (String) authorizationresponse.getBody().get("message"); //ERRO; PARA CORRIGIR
             return "Autorizado".equalsIgnoreCase(message);
         } else return false;
     }
