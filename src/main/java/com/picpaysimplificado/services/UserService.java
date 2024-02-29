@@ -37,6 +37,13 @@ public class UserService {
         return this.repository.findById(id).orElseThrow(() -> new Exception("Usuário não encontrado"));
     }
 
+    public User findUserByDocument(String document) throws Exception {
+        return this.repository.findUserByDocument(document).orElseThrow(() -> new Exception("Documento não encontrado. "));
+    }
+
+    public User findByEmailOrDocument(String email, String document) throws Exception {
+        return this.repository.findByEmailOrDocument(email, document).orElseThrow(() -> new Exception("Email ou documento não encontrado"));
+    }
 
     public User createUser(UserDTO data) {
         User newUser = new User(data);

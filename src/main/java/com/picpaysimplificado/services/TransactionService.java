@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+//import com.picpaysimplificado.domain.encryption.Encryption;
 import com.picpaysimplificado.domain.transaction.Transaction;
 import com.picpaysimplificado.domain.user.User;
 import com.picpaysimplificado.dtos.TransactionDTO;
@@ -29,12 +31,18 @@ public class TransactionService {
 
     @Autowired
     private NotificationService notificationService;
+    // @Autowired
+    // private Encryption encryption;
+
+
 
     public Transaction createTransaction(TransactionDTO transaction) throws Exception {
         User sender = this.userService.findUserById(transaction.senderId());
         User receiver = this.userService.findUserById(transaction.receiverId());
 
         userService.validateTransaction(sender, transaction.value());
+        EncryptionService encryptedAmount;
+
 
         boolean isAuthorized = this.authorizeTransaction(sender, transaction.value());
         
@@ -47,6 +55,10 @@ public class TransactionService {
         newTransaction.setSender(sender);
         newTransaction.setReceiver(receiver);
         newTransaction.setTimestamp(LocalDateTime.now());
+
+        // Encrypt data before saving to database
+        //String encryption = encryption.encryptTransaction(transaction.value().toString(), sender.getId(), receiver.getId());
+        //newTransaction.setEncryptedAmount(encryption);
 
         sender.setBalance(sender.getBalance().subtract(transaction.value()));
         receiver.setBalance(receiver.getBalance().add(transaction.value()));

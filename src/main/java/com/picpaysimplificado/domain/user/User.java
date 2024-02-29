@@ -45,4 +45,8 @@ public class User {
 		this.document = data.document();
 		this.password = data.password();
 	}
+
+	public String getDocument() {
+		return document;
+	}
 }
